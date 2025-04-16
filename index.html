@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Time to Project Completion Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 2rem;
+    }
+    .calculator {
+      max-width: 600px;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin: auto;
+    }
+    h2 {
+      text-align: center;
+      color: #003366;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .result {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #eef6f0;
+      border-left: 4px solid #4caf50;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <h2>Time to Project Completion Calculator</h2>
+
+    <label>Number of Sites:
+      <input type="number" id="sites" />
+    </label>
+    <label>Distance to Site (km):
+      <input type="number" id="distance" />
+    </label>
+    <label>Average Travelling Speed (km/h):
+      <input type="number" id="speed" />
+    </label>
+    <label>Number of Technicians:
+      <input type="number" id="techs" />
+    </label>
+    <label>Estimated Time for Work (minutes):
+      <input type="number" id="workTime" />
+    </label>
+    <label>Total Tickets Loaded for the Month:
+      <input type="number" id="tickets" />
+    </label>
+
+    <div class="result">
+      <p><strong>Travelling Time (Hours):</strong> <span id="travelTime"></span></p>
+      <p><strong>Total Work & Travel Time (Hours):</strong> <span id="totalTime"></span></p>
+      <p><strong>Total Time to Resolution (Hours):</strong> <span id="resHours"></span></p>
+      <p><strong>Total Time to Resolution (Working Days):</strong> <span id="resDays"></span></p>
+      <p><strong>Total Time to Resolution (Working Months):</strong> <span id="resMonths"></span></p>
+    </div>
+  </div>
+
+  <script>
+    const inputs = document.querySelectorAll('input');
+
+    inputs.forEach(input => {
+      input.addEventListener('input', calculate);
+    });
+
+    function calculate() {
+      const sites = parseFloat(document.getElementById('sites').value) || 0;
+      const distance = parseFloat(document.getElementById('distance').value) || 0;
+      const speed = parseFloat(document.getElementById('speed').value) || 1; // avoid divide by 0
+      const techs = parseFloat(document.getElementById('techs').value) || 1;
+      const workTime = parseFloat(document.getElementById('workTime').value) || 0;
+
+      const travelTime = distance / speed;
+      const workTimeHours = workTime / 60;
+      const totalWorkAndTravel = travelTime + workTimeHours;
+      const totalResHours = (sites * totalWorkAndTravel) / techs;
+      const totalResDays = totalResHours / 8;
+      const totalResMonths = totalResDays / 21.67;
+
+      document.getElementById('travelTime').textContent = travelTime.toFixed(2);
+      document.getElementById('totalTime').textContent = totalWorkAndTravel.toFixed(2);
+      document.getElementById('resHours').textContent = totalResHours.toFixed(2);
+      document.getElementById('resDays').textContent = totalResDays.toFixed(2);
+      document.getElementById('resMonths').textContent = totalResMonths.toFixed(2);
+    }
+  </script>
+</body>
+</html>
