@@ -123,8 +123,7 @@
         totalDistance += parseFloat(input.value) || 0;
       });
 
-      const avgDistance = distanceInputs.length ? totalDistance / distanceInputs.length : 0;
-      const travelTime = avgDistance / speed;
+      const travelTime = totalDistance / speed;
       const workTimeHours = workTime / 60;
       const totalWorkAndTravel = travelTime + workTimeHours;
       const totalResHours = (sites * totalWorkAndTravel) / techs;
