@@ -7,35 +7,67 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       font-family: Arial, sans-serif;
       background: #f4f4f4;
-      padding: 2rem;
+      padding: 0.5rem;
+      font-size: 12px;
     }
+
+    body.dark-mode {
+      background: #121212;
+      color: white;
+    }
+
     .calculator {
       max-width: 700px;
       background: white;
-      padding: 2rem;
+      padding: 1rem;
       border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       margin: auto;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+
+    body.dark-mode .calculator {
+      background: #1c1c1c;
+    }
+
     h2 {
       text-align: center;
       color: #003366;
+      margin-bottom: 1rem;
     }
+
+    body.dark-mode h2 {
+      color: #ffffff;
+    }
+
     label {
       display: block;
-      margin-top: 1rem;
+      margin-top: 0.75rem;
       font-weight: bold;
     }
+
     input {
       width: 100%;
-      padding: 0.5rem;
+      padding: 0.4rem;
       margin-top: 0.25rem;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
+
+    body.dark-mode input {
+      background: #333;
+      color: white;
+      border-color: #555;
+    }
+
     button {
       margin-top: 1rem;
       padding: 0.5rem 1rem;
@@ -45,18 +77,50 @@
       border-radius: 5px;
       cursor: pointer;
     }
+
+    body.dark-mode button {
+      background: #0066cc;
+    }
+
     .result {
-      margin-top: 2rem;
+      margin-top: 1.5rem;
       padding: 1rem;
       background: #eef6f0;
       border-left: 4px solid #4caf50;
     }
+
+    body.dark-mode .result {
+      background: #333;
+      border-left: 4px solid #0dff8b;
+    }
+
     canvas {
-      margin-top: 2rem;
+      margin-top: 1rem;
+      max-width: 100%;
+      height: 200px !important;
+    }
+
+    #darkModeToggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.5rem 1rem;
+      background-color: #003366;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    
+    @page {
+      size: A4;
+      margin: 5mm;
     }
   </style>
 </head>
 <body>
+  <button id="darkModeToggle">Toggle Dark Mode</button>
+
   <div class="calculator" id="pdf-area">
     <h2>Project Resolution Estimator</h2>
 
@@ -88,9 +152,10 @@
       <p><strong>Total Time to Resolution (Working Months):</strong> <span id="resMonths"></span></p>
     </div>
 
-    <canvas id="timeChart" width="400" height="300"></canvas>
+    <canvas id="timeChart" width="600" height="200"></canvas>
 
     <button onclick="saveAsPDF()">Save as PDF</button>
+    <button onclick="downloadCSV()">Download as CSV</button>
   </div>
 
   <script>
@@ -123,41 +188,56 @@
         totalDistance += parseFloat(input.value) || 0;
       });
 
-      const avgDistance = distanceInputs.length ? totalDistance / distanceInputs.length : 0;
-      const travelTime = avgDistance / speed;
+      const travelTime = totalDistance / speed;
       const workTimeHours = workTime / 60;
       const totalWorkAndTravel = travelTime + workTimeHours;
       const totalResHours = (sites * totalWorkAndTravel) / techs;
       const totalResDays = totalResHours / 8;
       const totalResMonths = totalResDays / 21.67;
 
+      // Update result fields
       document.getElementById('travelTime').textContent = travelTime.toFixed(2);
       document.getElementById('totalTime').textContent = totalWorkAndTravel.toFixed(2);
       document.getElementById('resHours').textContent = totalResHours.toFixed(2);
       document.getElementById('resDays').textContent = totalResDays.toFixed(2);
       document.getElementById('resMonths').textContent = totalResMonths.toFixed(2);
 
-      updateChart([travelTime, workTimeHours, totalResHours - travelTime - workTimeHours]);
+      // Update the chart
+      updateChart([Math.max(0, travelTime), Math.max(0, workTimeHours), Math.max(0, totalResHours - travelTime - workTimeHours)]);
     }
 
     function updateChart(values) {
       const ctx = document.getElementById('timeChart').getContext('2d');
       if (chart) chart.destroy();
       chart = new Chart(ctx, {
-        type: 'pie',
+        type: 'bar',
         data: {
-          labels: ['Travel Time (hrs)', 'Work Time (hrs)', 'Remaining Resolution Time (hrs)'],
+          labels: ['Travel Time', 'Work Time', 'Remaining Resolution Time'],
           datasets: [{
+            label: 'Time (hours)',
             data: values,
-            backgroundColor: ['#2196f3', '#4caf50', '#ffc107'],
-            borderWidth: 1
+            backgroundColor: ['#2196f3', '#4caf50', '#ffc107']
           }]
         },
         options: {
           responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,  // This ensures the y-axis starts from 0
+              ticks: {
+                stepSize: 1
+              },
+              title: {
+                display: true,
+                text: 'Hours'
+              }
+            }
+          },
           plugins: {
-            legend: {
-              position: 'bottom'
+            legend: { display: false },
+            title: {
+              display: true,
+              text: 'Time Distribution'
             }
           }
         }
@@ -166,8 +246,61 @@
 
     function saveAsPDF() {
       const area = document.getElementById("pdf-area");
-      html2pdf().from(area).save("Project_Resolution_Estimate.pdf");
+      const options = {
+        margin: 0,
+        filename: 'Project_Resolution_Estimate.pdf',
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(options).from(area).save();
     }
+
+    // Function to generate and download CSV
+    function downloadCSV() {
+      const sites = parseFloat(document.getElementById('sites').value) || 0;
+      const speed = parseFloat(document.getElementById('speed').value) || 1;
+      const techs = parseFloat(document.getElementById('techs').value) || 1;
+      const workTime = parseFloat(document.getElementById('workTime').value) || 0;
+
+      const distanceInputs = document.querySelectorAll('.site-distance');
+      let totalDistance = 0;
+      distanceInputs.forEach(input => {
+        totalDistance += parseFloat(input.value) || 0;
+      });
+
+      const travelTime = totalDistance / speed;
+      const workTimeHours = workTime / 60;
+      const totalWorkAndTravel = travelTime + workTimeHours;
+      const totalResHours = (sites * totalWorkAndTravel) / techs;
+      const totalResDays = totalResHours / 8;
+      const totalResMonths = totalResDays / 21.67;
+
+      // Create CSV content
+      const csvContent = [
+        ["Parameter", "Value (Hours)"],
+        ["Travel Time", travelTime.toFixed(2)],
+        ["Work Time", workTimeHours.toFixed(2)],
+        ["Total Work & Travel Time", totalWorkAndTravel.toFixed(2)],
+        ["Total Time to Resolution (Hours)", totalResHours.toFixed(2)],
+        ["Total Time to Resolution (Working Days)", totalResDays.toFixed(2)],
+        ["Total Time to Resolution (Working Months)", totalResMonths.toFixed(2)],
+      ]
+        .map(row => row.join(","))
+        .join("\n");
+
+      // Trigger CSV download
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "Project_Resolution_Estimate.csv";
+      link.click();
+    }
+
+    // Dark Mode Toggle
+    document.getElementById("darkModeToggle").addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+    });
   </script>
 </body>
 </html>
