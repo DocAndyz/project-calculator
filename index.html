@@ -166,8 +166,6 @@
 
     function saveAsPDF() {
       const area = document.getElementById("pdf-area");
-      html2pdf().from(area).save("Project_Resolution_Estimate.pdf");
-    }
-  </script>
-</body>
-</html>
+      
+      // PDF configuration to fit the content on a single page
+      const
