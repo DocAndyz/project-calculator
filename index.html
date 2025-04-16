@@ -123,8 +123,8 @@
         totalDistance += parseFloat(input.value) || 0;
       });
 
-      // Calculate total travel time by dividing the total distance by the average speed
-      const travelTime = totalDistance / speed;
+      const avgDistance = distanceInputs.length ? totalDistance / distanceInputs.length : 0;
+      const travelTime = avgDistance / speed;
       const workTimeHours = workTime / 60;
       const totalWorkAndTravel = travelTime + workTimeHours;
       const totalResHours = (sites * totalWorkAndTravel) / techs;
@@ -166,6 +166,8 @@
 
     function saveAsPDF() {
       const area = document.getElementById("pdf-area");
-      
-      // PDF configuration to fit the content on a single page
-      const
+      html2pdf().from(area).save("Project_Resolution_Estimate.pdf");
+    }
+  </script>
+</body>
+</html>
