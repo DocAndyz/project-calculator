@@ -123,6 +123,7 @@
         totalDistance += parseFloat(input.value) || 0;
       });
 
+      // Calculate total travel time by dividing the total distance by the average speed
       const travelTime = totalDistance / speed;
       const workTimeHours = workTime / 60;
       const totalWorkAndTravel = travelTime + workTimeHours;
