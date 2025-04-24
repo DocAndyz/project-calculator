@@ -156,6 +156,7 @@
 
     <button onclick="saveAsPDF()">Save as PDF</button>
     <button onclick="downloadCSV()">Download as CSV</button>
+    <button onclick="window.open('https://www.google.com/maps', '_blank')">Open Google Maps</button>
   </div>
 
   <script>
@@ -195,14 +196,12 @@
       const totalResDays = totalResHours / 8;
       const totalResMonths = totalResDays / 21.67;
 
-      // Update result fields
       document.getElementById('travelTime').textContent = travelTime.toFixed(2);
       document.getElementById('totalTime').textContent = totalWorkAndTravel.toFixed(2);
       document.getElementById('resHours').textContent = totalResHours.toFixed(2);
       document.getElementById('resDays').textContent = totalResDays.toFixed(2);
       document.getElementById('resMonths').textContent = totalResMonths.toFixed(2);
 
-      // Update the chart
       updateChart([Math.max(0, travelTime), Math.max(0, workTimeHours), Math.max(0, totalResHours - travelTime - workTimeHours)]);
     }
 
@@ -223,7 +222,7 @@
           responsive: true,
           scales: {
             y: {
-              beginAtZero: true,  // This ensures the y-axis starts from 0
+              beginAtZero: true,
               ticks: {
                 stepSize: 1
               },
@@ -256,7 +255,6 @@
       html2pdf().set(options).from(area).save();
     }
 
-    // Function to generate and download CSV
     function downloadCSV() {
       const sites = parseFloat(document.getElementById('sites').value) || 0;
       const speed = parseFloat(document.getElementById('speed').value) || 1;
@@ -276,7 +274,6 @@
       const totalResDays = totalResHours / 8;
       const totalResMonths = totalResDays / 21.67;
 
-      // Create CSV content
       const csvContent = [
         ["Parameter", "Value (Hours)"],
         ["Travel Time", travelTime.toFixed(2)],
@@ -289,7 +286,6 @@
         .map(row => row.join(","))
         .join("\n");
 
-      // Trigger CSV download
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
@@ -304,4 +300,3 @@
   </script>
 </body>
 </html>
-
